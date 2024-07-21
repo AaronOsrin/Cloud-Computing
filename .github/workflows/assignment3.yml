@@ -46,6 +46,7 @@ jobs:
           - 27017:27017
       web:
         image: bookclub-api
+        options: --entrypoint "tail -f /dev/null"
         ports:
           - 5001:5001
 
@@ -55,6 +56,9 @@ jobs:
 
       - name: Install dependencies
         run: pip install pytest requests
+
+      - name: Copy Docker image to the runner
+        run: docker save bookclub-api | docker load
 
       - name: Wait for services to be ready
         run: |
@@ -82,12 +86,16 @@ jobs:
           - 27017:27017
       web:
         image: bookclub-api
+        options: --entrypoint "tail -f /dev/null"
         ports:
           - 5001:5001
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Copy Docker image to the runner
+        run: docker save bookclub-api | docker load
 
       - name: Read and execute queries
         run: |
