@@ -36,6 +36,15 @@ jobs:
           name: log.txt
           path: log.txt
 
+      - name: Save Docker image
+        run: docker save bookclub-api -o bookclub-api.tar
+
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v2
+        with:
+          name: bookclub-api.tar
+          path: bookclub-api.tar
+
   test:
     runs-on: ubuntu-latest
     needs: build
@@ -54,11 +63,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Download Docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: bookclub-api.tar
+          path: .
+
+      - name: Load Docker image
+        run: docker load -i bookclub-api.tar
+
       - name: Install dependencies
         run: pip install pytest requests
-
-      - name: Copy Docker image to the runner
-        run: docker save bookclub-api | docker load
 
       - name: Wait for services to be ready
         run: |
@@ -94,8 +109,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Copy Docker image to the runner
-        run: docker save bookclub-api | docker load
+      - name: Download Docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: bookclub-api.tar
+          path: .
+
+      - name: Load Docker image
+        run: docker load -i bookclub-api.tar
 
       - name: Read and execute queries
         run: |
