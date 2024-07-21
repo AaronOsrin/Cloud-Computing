@@ -1,17 +1,14 @@
-version: '3'
+version: '3.8'
+
 services:
-  db:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
   web:
     build: .
     ports:
       - "5001:5001"
-    environment:
-      MONGO_URI: mongodb://db:27017/booksdb
+    depends_on:
+      - db
 
-volumes:
-  mongo-data:
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"

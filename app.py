@@ -20,17 +20,22 @@ except errors.ServerSelectionTimeoutError as err:
     app.logger.error("MongoDB connection failed: " + str(err))
     db = None
 
+VALID_GENRES = {'Fiction', 'Non-Fiction', 'Romance', 'Science Fiction', 'Fantasy'}
+
 @app.route('/books', methods=['POST'])
 def create_book():
     if db is None:
         return jsonify({'error': 'Database connection failed'}), 500
 
     data = request.get_json()
-    app.logger.debug(f"Received data for new book: {data}")
     required_fields = ['title', 'ISBN', 'genre']
     if not data or not all(field in data for field in required_fields) or any(data[field] == '' for field in required_fields):
         app.logger.error('Missing or empty required fields')
         return jsonify({'error': 'Missing or empty required fields'}), 400
+
+    if data['genre'] not in VALID_GENRES:
+        app.logger.error('Invalid genre provided')
+        return jsonify({'error': 'Invalid genre provided'}), 422
 
     try:
         book_id = str(uuid.uuid4())
@@ -43,7 +48,7 @@ def create_book():
             'publisher': '',
             'publishedDate': ''
         })
-        app.logger.info(f'Book created with ID: {book_id}')
+        app.logger.info('Book created with id: ' + book_id)
 
         # External API call to Google Books API
         google_books_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{data['ISBN']}"
@@ -66,8 +71,8 @@ def create_book():
         )
 
         book = books_collection.find_one({'ID': book_id}, {'_id': False})
-        app.logger.info(f'Book details updated from Google Books: {book}')
-        return jsonify(book), 201
+        app.logger.info('Book details updated from Google Books: ' + str(book))
+        return jsonify({'ID': book_id, **book}), 201
     except Exception as e:
         app.logger.error('Error creating book: ' + str(e))
         return jsonify({'error': 'Internal server error'}), 500
@@ -87,7 +92,6 @@ def book_details(book_id):
         return jsonify({'error': 'Database connection failed'}), 500
 
     book = books_collection.find_one({'ID': book_id}, {'_id': False})
-    app.logger.debug(f"Request for book with ID: {book_id} - Found: {book}")
     if not book:
         app.logger.error('Book not found')
         return jsonify({'error': 'Book not found'}), 404
@@ -96,18 +100,17 @@ def book_details(book_id):
         return jsonify(book)
     elif request.method == 'PUT':
         data = request.get_json()
-        app.logger.debug(f"Update data for book with ID {book_id}: {data}")
         if not data:
             return jsonify({'error': 'Invalid request'}), 400
         update_fields = {key: data[key] for key in ['title', 'ISBN', 'genre', 'authors', 'publisher', 'publishedDate'] if key in data}
         if not update_fields:
             return jsonify({'error': 'Invalid request'}), 400
         books_collection.update_one({'ID': book_id}, {'$set': update_fields})
-        app.logger.info('Book details updated for ID: ' + book_id)
+        app.logger.info('Book details updated for id: ' + book_id)
         return jsonify({'ID': book_id}), 200
     elif request.method == 'DELETE':
         books_collection.delete_one({'ID': book_id})
-        app.logger.info('Book deleted with ID: ' + book_id)
+        app.logger.info('Book deleted with id: ' + book_id)
         return jsonify({'ID': book_id}), 200
 
 @app.route('/books/isbn/<isbn>', methods=['GET'])
@@ -116,7 +119,6 @@ def get_book_by_isbn(isbn):
         return jsonify({'error': 'Database connection failed'}), 500
 
     book = books_collection.find_one({'ISBN': isbn}, {'_id': False})
-    app.logger.debug(f"Request for book with ISBN: {isbn} - Found: {book}")
     if not book:
         app.logger.error('Book not found by ISBN')
         return jsonify({'error': 'Book not found by ISBN'}), 404
