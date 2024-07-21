@@ -53,15 +53,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Install dependencies
+        run: pip install pytest requests
+
       - name: Wait for services to be ready
         run: |
           until curl -s http://localhost:5001; do
             echo "Waiting for web service..."
             sleep 5
           done
-
-      - name: Install dependencies
-        run: pip install pytest requests
 
       - name: Run tests
         run: pytest -v tests/assn3_tests.py > assn3_test_results.txt
@@ -89,15 +89,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Wait for services to be ready
-        run: |
-          until curl -s http://localhost:5001; do
-            echo "Waiting for web service..."
-            sleep 5
-          done
-
       - name: Read and execute queries
         run: |
+          docker-compose up -d
           while read -r query; do
             response=$(curl -s "http://localhost:5001/books${query}")
             echo -e "query: ${query}\nresponse: ${response}\n" >> response.txt
