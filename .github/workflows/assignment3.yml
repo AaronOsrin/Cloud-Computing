@@ -54,7 +54,7 @@ jobs:
         ports:
           - 27017:27017
       web:
-        image: bookclub-api-web
+        image: cloud_computing_final_assignment/bookclub-api-web
         options: --entrypoint "tail -f /dev/null"
         ports:
           - 5001:5001
