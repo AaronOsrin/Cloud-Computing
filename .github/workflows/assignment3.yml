@@ -24,7 +24,7 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Build Docker image
-        run: docker build -t bookclub-api .
+        run: docker build -t cloud_computing_final_assignment/bookclub-api-web .
 
       - name: Log build status
         run: echo "$(date -Iminutes)\nstudent-name\nimage successfully built" > log.txt || echo "$(date -Iminutes)\nstudent-name\nimage not able to be built" > log.txt
@@ -37,13 +37,13 @@ jobs:
           path: log.txt
 
       - name: Save Docker image
-        run: docker save bookclub-api -o bookclub-api.tar
+        run: docker save cloud_computing_final_assignment/bookclub-api-web -o bookclub-api-web.tar
 
       - name: Upload Docker image
         uses: actions/upload-artifact@v2
         with:
-          name: bookclub-api.tar
-          path: bookclub-api.tar
+          name: bookclub-api-web.tar
+          path: bookclub-api-web.tar
 
   test:
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
         ports:
           - 27017:27017
       web:
-        image: bookclub-api-web
+        image: cloud_computing_final_assignment/bookclub-api-web
         options: --entrypoint "tail -f /dev/null"
         ports:
           - 5001:5001
@@ -66,11 +66,11 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v2
         with:
-          name: bookclub-api.tar
+          name: bookclub-api-web.tar
           path: .
 
       - name: Load Docker image
-        run: docker load -i bookclub-api.tar
+        run: docker load -i bookclub-api-web.tar
 
       - name: Install dependencies
         run: pip install pytest requests
@@ -96,11 +96,11 @@ jobs:
     needs: test
     services:
       db:
-        image: mongo
+        image: cloud_computing_final_assignment/bookclub-api-db
         ports:
           - 27017:27017
       web:
-        image: bookclub-api
+        image: cloud_computing_final_assignment/bookclub-api-web
         options: --entrypoint "tail -f /dev/null"
         ports:
           - 5001:5001
@@ -112,11 +112,11 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v2
         with:
-          name: bookclub-api.tar
+          name: bookclub-api-web.tar
           path: .
 
       - name: Load Docker image
-        run: docker load -i bookclub-api.tar
+        run: docker load -i bookclub-api-web.tar
 
       - name: Read and execute queries
         run: |
