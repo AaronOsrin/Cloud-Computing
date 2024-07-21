@@ -1,16 +1,24 @@
 version: '3.8'
 
 services:
+  db:
+    image: mongo
+    container_name: bookclub-api-db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
   web:
     image: bookclub-api
-    build: .
+    container_name: bookclub-api-web
     ports:
       - "5001:5001"
     depends_on:
       - db
+    networks:
+      - app-network
 
-  db:
-    image: mongo
-    ports:
-      - "27017:27017"
-      
+networks:
+  app-network:
+    driver: bridge
