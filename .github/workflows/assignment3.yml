@@ -51,12 +51,10 @@ jobs:
     services:
       db:
         image: mongo
-        container_name: bookclub-api-db
         ports:
           - 27017:27017
       web:
-        image: bookclub-api
-        container_name: bookclub-api-web
+        image: bookclub-api-web
         options: --entrypoint "tail -f /dev/null"
         ports:
           - 5001:5001
@@ -99,12 +97,10 @@ jobs:
     services:
       db:
         image: mongo
-        container_name: bookclub-api-db
         ports:
           - 27017:27017
       web:
         image: bookclub-api
-        container_name: bookclub-api-web
         options: --entrypoint "tail -f /dev/null"
         ports:
           - 5001:5001
