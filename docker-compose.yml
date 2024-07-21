@@ -5,8 +5,10 @@ services:
     ports:
       - "27017:27017"
   web:
-    image: cloud_computing_final_assignment-web
+    build: .
     ports:
       - "5001:5001"
     depends_on:
       - db
+    environment:
+      - MONGO_URI=mongodb://db:27017/booksdb
