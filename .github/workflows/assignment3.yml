@@ -24,26 +24,17 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Build Docker image
-        run: docker build -t cloud_computing_final_assignment/bookclub-api-web .
+        run: docker build -t bookclub-api .
 
       - name: Log build status
         run: echo "$(date -Iminutes)\nstudent-name\nimage successfully built" > log.txt || echo "$(date -Iminutes)\nstudent-name\nimage not able to be built" > log.txt
         shell: bash
 
       - name: Upload log
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: log.txt
           path: log.txt
-
-      - name: Save Docker image
-        run: docker save cloud_computing_final_assignment/bookclub-api-web -o bookclub-api-web.tar
-
-      - name: Upload Docker image
-        uses: actions/upload-artifact@v2
-        with:
-          name: bookclub-api-web.tar
-          path: bookclub-api-web.tar
 
   test:
     runs-on: ubuntu-latest
@@ -54,8 +45,7 @@ jobs:
         ports:
           - 27017:27017
       web:
-        image: cloud_computing_final_assignment/bookclub-api-web
-        options: --entrypoint "tail -f /dev/null"
+        image: bookclub-api
         ports:
           - 5001:5001
 
@@ -63,30 +53,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download Docker image
-        uses: actions/download-artifact@v2
-        with:
-          name: bookclub-api-web.tar
-          path: .
-
-      - name: Load Docker image
-        run: docker load -i bookclub-api-web.tar
-
       - name: Install dependencies
         run: pip install pytest requests
-
-      - name: Wait for services to be ready
-        run: |
-          until curl -s http://localhost:5001; do
-            echo "Waiting for web service..."
-            sleep 5
-          done
 
       - name: Run tests
         run: pytest -v tests/assn3_tests.py > assn3_test_results.txt
 
       - name: Upload test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: assn3_test_results.txt
           path: assn3_test_results.txt
@@ -96,27 +70,17 @@ jobs:
     needs: test
     services:
       db:
-        image: cloud_computing_final_assignment/bookclub-api-db
+        image: mongo
         ports:
           - 27017:27017
       web:
-        image: cloud_computing_final_assignment/bookclub-api-web
-        options: --entrypoint "tail -f /dev/null"
+        image: bookclub-api
         ports:
           - 5001:5001
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Download Docker image
-        uses: actions/download-artifact@v2
-        with:
-          name: bookclub-api-web.tar
-          path: .
-
-      - name: Load Docker image
-        run: docker load -i bookclub-api-web.tar
 
       - name: Read and execute queries
         run: |
@@ -127,7 +91,7 @@ jobs:
           done < query.txt
 
       - name: Upload query results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: response.txt
           path: response.txt
