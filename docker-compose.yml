@@ -8,7 +8,8 @@ services:
       - 27017:27017
 
   web:
-    build: .
+    build:
+      context: .
     image: bookclub-api
     container_name: bookclub-api
     ports:
