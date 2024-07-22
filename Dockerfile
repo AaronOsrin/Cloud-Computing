@@ -1,20 +1,23 @@
-# Use an official Python runtime as a parent image
 FROM python:3.8-slim
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy requirements file
+COPY requirements.txt .
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN pip install -r requirements.txt
 
-# Make port 5001 available to the world outside this container
+# Copy application code
+COPY . .
+
+# Set environment variables if needed
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+
+# Expose the port the app runs on
 EXPOSE 5001
 
-# Define environment variable
-ENV NAME World
-
-# Run app.py when the container launches
+# Command to run the application
 CMD ["python", "app.py"]
