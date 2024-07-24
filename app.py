@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # MongoDB setup
 try:
-    client = MongoClient('mongodb://db:27017/', serverSelectionTimeoutMS=5000)
+    client = MongoClient('mongodb://localhost:27017/', serverSelectionTimeoutMS=5000)
     db = client.booksdb
     books_collection = db.books
     client.server_info()  # Trigger exception if cannot connect to DB
